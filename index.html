@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f7f2">
+  <title>탐구 모둠 공간</title>
+  <style>
+    :root { color-scheme: light; --ink:#1f3028; --muted:#65746b; --green:#276b4b; --line:#dce5dc; --paper:#fff; --canvas:#f5f7f2; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; background:var(--canvas); color:var(--ink); font-family:system-ui,-apple-system,"Segoe UI",sans-serif; }
+    main { width:min(100% - 32px, 880px); margin:0 auto; padding:52px 0 72px; }
+    header { margin-bottom:28px; }
+    .eyebrow { margin:0 0 8px; color:var(--green); font-size:.82rem; font-weight:750; letter-spacing:.08em; }
+    h1 { margin:0; font-size:clamp(1.8rem,5vw,2.5rem); letter-spacing:-.04em; }
+    .intro { margin:10px 0 0; color:var(--muted); line-height:1.65; }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+    section { padding:24px; border:1px solid var(--line); border-radius:18px; background:var(--paper); box-shadow:0 8px 24px #263d2a0a; }
+    h2 { margin:0 0 8px; font-size:1.2rem; }
+    .hint { min-height:3.2em; margin:0 0 18px; color:var(--muted); font-size:.92rem; line-height:1.6; }
+    label { display:block; margin:14px 0 7px; font-size:.9rem; font-weight:700; }
+    input { width:100%; min-height:46px; padding:10px 12px; border:1px solid #cbd7cc; border-radius:10px; background:white; color:var(--ink); font:inherit; }
+    input:focus { outline:3px solid #276b4b2b; border-color:var(--green); }
+    button { width:100%; min-height:46px; margin-top:17px; border:0; border-radius:10px; background:var(--green); color:white; font:inherit; font-weight:750; cursor:pointer; }
+    button:hover { background:#1d583c; }
+    button:focus-visible { outline:3px solid #276b4b60; outline-offset:2px; }
+    .notice { min-height:1.5em; margin:12px 0 0; color:#a13b31; font-size:.9rem; }
+    .notice.success { color:var(--green); }
+    .groups { display:grid; gap:16px; margin-top:24px; }
+    .empty { padding:25px; border:1px dashed #bdcabe; border-radius:16px; color:var(--muted); text-align:center; }
+    .group { padding:22px 24px; border:1px solid var(--line); border-radius:16px; background:var(--paper); }
+    .group-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+    .group h2 { margin:0; }
+    .code { display:inline-flex; align-items:center; padding:7px 11px; border-radius:8px; background:#edf5ef; color:var(--green); font:750 1rem ui-monospace,SFMono-Regular,Consolas,monospace; letter-spacing:.09em; }
+    .members-title { margin:18px 0 9px; font-size:.9rem; font-weight:750; }
+    ul { display:flex; flex-wrap:wrap; gap:8px; margin:0; padding:0; list-style:none; }
+    li { padding:7px 11px; border:1px solid var(--line); border-radius:999px; background:#fafcf9; font-size:.92rem; }
+    .member-count { color:var(--muted); font-size:.85rem; font-weight:500; }
+    .inquiry-workspace { margin-top:24px; }
+    .inquiry-workspace[hidden] { display:none; }
+    .inquiry-layout { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:18px; }
+    .inquiry-fields, .coach-card { padding:20px; border:1px solid var(--line); border-radius:14px; background:#fbfcfa; }
+    .inquiry-fields h3, .coach-card h3 { margin:0 0 6px; font-size:1.05rem; }
+    .subtle { margin:0 0 14px; color:var(--muted); font-size:.9rem; line-height:1.55; }
+    select, textarea { width:100%; padding:10px 12px; border:1px solid #cbd7cc; border-radius:10px; background:white; color:var(--ink); font:inherit; }
+    select { min-height:44px; }
+    textarea { min-height:84px; resize:vertical; line-height:1.5; }
+    select:focus, textarea:focus { outline:3px solid #276b4b2b; border-color:var(--green); }
+    .inquiry-fields label:first-of-type { margin-top:0; }
+    .coach-list { display:grid; gap:12px; }
+    .coach-card { padding:16px; background:white; }
+    .coach-card h3 { font-size:.98rem; }
+    .coach-question { margin:0; color:#394b40; line-height:1.55; }
+    .choice-row { display:flex; flex-wrap:wrap; gap:8px 14px; margin:13px 0 0; }
+    .choice-row label { display:flex; align-items:center; gap:6px; margin:0; font-size:.88rem; font-weight:600; }
+    .choice-row input { width:16px; min-height:16px; margin:0; accent-color:var(--green); }
+    .reason-label { margin-top:12px; }
+    .save-status { min-height:1.4em; margin:12px 0 0; color:var(--green); font-size:.88rem; }
+    .execution-section { margin-top:22px; padding-top:22px; border-top:1px solid var(--line); }
+    .execution-section > h3 { margin:0 0 6px; font-size:1.15rem; }
+    .execution-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin-top:16px; }
+    .execution-field { padding:17px; border:1px solid var(--line); border-radius:13px; background:#fbfcfa; }
+    .execution-field label { margin-top:0; }
+    .view-switch { display:flex; flex-wrap:wrap; gap:8px; margin-top:20px; }
+    .view-switch button { width:auto; min-height:40px; margin:0; padding:8px 14px; background:#e8eee8; color:var(--ink); }
+    .view-switch button[aria-pressed="true"] { background:var(--green); color:white; }
+    .teacher-view { margin-top:24px; }
+    .teacher-view[hidden], .student-view[hidden] { display:none; }
+    .teacher-group { margin-top:16px; padding:22px; border:1px solid var(--line); border-radius:16px; background:white; }
+    .teacher-group h3 { margin:0; }
+    .teacher-meta { margin:7px 0 16px; color:var(--muted); font-size:.9rem; }
+    .progress-track { height:9px; margin:10px 0 7px; overflow:hidden; border-radius:99px; background:#e9eee9; }
+    .progress-fill { height:100%; border-radius:99px; background:#3d9668; }
+    .progress-label { margin:0; font-size:.9rem; font-weight:700; }
+    .request-status { display:inline-flex; margin:10px 0; padding:5px 10px; border-radius:99px; background:#f0f2ef; color:var(--muted); font-size:.85rem; font-weight:700; }
+    .request-status.active { background:#fff0dd; color:#8a4a00; }
+    .teacher-members { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:14px; }
+    .teacher-member { padding:15px; border:1px solid var(--line); border-radius:12px; background:#fbfcfa; }
+    .teacher-member h4 { margin:0 0 10px; font-size:1rem; }
+    .teacher-member p { margin:8px 0 0; font-size:.91rem; line-height:1.55; white-space:pre-wrap; overflow-wrap:anywhere; }
+    .record-label { color:var(--muted); font-weight:700; }
+    .teacher-empty { padding:22px; border:1px dashed #bdcabe; border-radius:14px; color:var(--muted); text-align:center; }
+    .request-button { width:auto; min-height:40px; margin:8px 0 0; padding:8px 13px; }
+    @media (max-width:650px) { .teacher-members { grid-template-columns:1fr; } }
+    @media (max-width:650px) { .execution-grid { grid-template-columns:1fr; } }
+    @media (max-width:650px) { main { padding-top:34px; } .grid { grid-template-columns:1fr; } .hint { min-height:0; } section { padding:20px; } }
+    @media (max-width:760px) { .inquiry-layout { grid-template-columns:1fr; } }
+
+    /* BMW M inspired dark editorial treatment */
+    :root { color-scheme:dark; --ink:#fff; --muted:#aaa; --green:#fff; --line:#3c3c3c; --paper:#0d0d0d; --canvas:#000; }
+    body { background:#000; color:#fff; font-weight:300; }
+    main { width:min(100% - 48px, 1440px); padding-top:64px; }
+    header { margin-bottom:40px; padding-bottom:28px; border-bottom:1px solid #3c3c3c; }
+    .eyebrow { color:#e6e6e6; font-weight:700; }
+    .eyebrow::after { display:block; width:72px; height:4px; margin-top:12px; background:linear-gradient(90deg,#0066b1 0 33%,#1c69d4 33% 66%,#e22718 66%); content:""; }
+    h1,h2,h3,h4 { color:#fff; font-weight:700; letter-spacing:-.025em; }
+    h1 { font-size:clamp(2.4rem,7vw,5rem); line-height:1; text-transform:uppercase; }
+    h2 { font-size:clamp(1.4rem,3vw,2rem); text-transform:uppercase; }
+    h3 { text-transform:uppercase; }
+    p { color:#bbb; }
+    .intro { color:#e6e6e6; font-size:1.05rem; }
+    .view-switch { margin-top:28px; }
+    .view-switch button { background:transparent; color:#bbb; border:1px solid #3c3c3c; border-radius:0; text-transform:uppercase; letter-spacing:1px; }
+    .view-switch button[aria-pressed="true"] { border-color:#fff; background:#fff; color:#000; }
+    section, .teacher-group { border:1px solid #3c3c3c; border-radius:0; background:#0d0d0d; box-shadow:none; }
+    .grid > section { padding:28px; }
+    .group, .teacher-group { border-radius:0; background:#0d0d0d; box-shadow:none; }
+    .inquiry-fields, .coach-card, .execution-field, .teacher-member { border-color:#3c3c3c; border-radius:0; background:#111; }
+    .hint, .subtle, .teacher-meta, .member-count { color:#999; }
+    label { color:#e6e6e6; }
+    input, select, textarea { border:1px solid #3c3c3c; border-radius:0; background:#1a1a1a; color:#fff; }
+    input::placeholder, textarea::placeholder { color:#7e7e7e; }
+    input:focus, select:focus, textarea:focus { outline:2px solid #fff; border-color:#fff; }
+    button { width:auto; min-height:48px; padding:12px 22px; border:1px solid #fff; border-radius:0; background:transparent; color:#fff; text-transform:uppercase; letter-spacing:1.2px; }
+    button:hover { background:#fff; color:#000; }
+    form button { width:100%; }
+    .view-switch button:hover { background:#fff; color:#000; }
+    .notice { color:#f4b400; }
+    .notice.success, .save-status { color:#bbb; }
+    .empty, .teacher-empty { border-color:#3c3c3c; border-radius:0; color:#999; }
+    .code { border-radius:0; background:#1a1a1a; color:#fff; }
+    li { border-color:#3c3c3c; border-radius:0; background:#111; color:#e6e6e6; }
+    .choice-row input { accent-color:#fff; }
+    .coach-question { color:#e6e6e6; }
+    .request-status { border-radius:0; background:#262626; color:#bbb; }
+    .request-status.active { border-left:4px solid #e22718; background:#1a1a1a; color:#fff; }
+    .progress-track { border-radius:0; background:#262626; }
+    .progress-fill { border-radius:0; background:linear-gradient(90deg,#0066b1 0 33%,#1c69d4 33% 66%,#e22718 66%); }
+    .group-head { border-bottom:1px solid #262626; padding-bottom:14px; }
+    .members-title, .progress-label { color:#fff; }
+    .execution-section { border-color:#3c3c3c; }
+    .request-button { width:auto; }
+    @media (max-width:650px) {
+      main { width:min(100% - 32px, 1440px); padding-top:36px; }
+      .grid > section { padding:20px; }
+      .view-switch button { flex:1; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">과학탐구실험 1</p>
+      <h1>탐구 모둠 공간</h1>
+      <p class="intro">모둠을 만들거나 참여 코드로 들어오세요. 실명 대신 별칭이나 번호를 사용할 수 있어요.</p>
+      <nav class="view-switch" aria-label="화면 전환">
+        <button type="button" id="student-view-button" aria-pressed="true">학생 화면</button>
+        <button type="button" id="teacher-view-button" aria-pressed="false">선생님 화면</button>
+      </nav>
+    </header>
+
+    <div id="student-view" class="student-view">
+    <div class="grid">
+      <section aria-labelledby="create-title">
+        <h2 id="create-title">새 모둠 만들기</h2>
+        <p class="hint">먼저 참여할 별칭 또는 번호를 정하고 모둠 공간을 만들어 주세요.</p>
+        <form id="create-form">
+          <label for="create-name">내 별칭 또는 번호</label>
+          <input id="create-name" name="name" maxlength="24" placeholder="예: 초록별, 1번" autocomplete="nickname" required>
+          <button type="submit">모둠 만들기</button>
+          <p class="notice" id="create-notice" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section aria-labelledby="join-title">
+        <h2 id="join-title">모둠에 참여하기</h2>
+        <p class="hint">모둠에서 받은 참여 코드와 내 별칭 또는 번호를 입력해 주세요.</p>
+        <form id="join-form">
+          <label for="join-code">참여 코드</label>
+          <input id="join-code" name="code" maxlength="6" placeholder="예: A7K2Q9" autocapitalize="characters" autocomplete="off" required>
+          <label for="join-name">내 별칭 또는 번호</label>
+          <input id="join-name" name="name" maxlength="24" placeholder="예: 푸른하늘, 2번" autocomplete="nickname" required>
+          <button type="submit">모둠 참여하기</button>
+          <p class="notice" id="join-notice" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+    </div>
+
+    <section class="groups" id="groups" aria-label="내 모둠" aria-live="polite"></section>
+
+    <section class="inquiry-workspace" id="inquiry-workspace" aria-labelledby="inquiry-title" hidden>
+      <h2 id="inquiry-title">탐구 생각과 코치 제안</h2>
+      <p class="subtle">모둠의 탐구 생각을 기록하고, 코치 질문을 검토한 뒤 각 제안에 대한 판단을 남겨 보세요.</p>
+      <div class="grid">
+        <div>
+          <label for="workspace-group">모둠 선택</label>
+          <select id="workspace-group"></select>
+        </div>
+        <div>
+          <label for="workspace-member">기록할 학생</label>
+          <select id="workspace-member"></select>
+        </div>
+      </div>
+      <div class="inquiry-fields" style="margin-top:16px">
+        <h3>내 생각 기록</h3>
+        <p class="subtle">별칭 또는 번호에 연결해 지금까지의 생각을 남겨 보세요.</p>
+        <label for="student-thought">탐구하면서 든 생각</label>
+        <textarea id="student-thought" placeholder="왜 이런 결과가 나올 것 같은지, 새롭게 떠오른 생각을 적어 보세요."></textarea>
+        <button type="button" class="request-button" id="help-request-button">선생님께 확인 요청</button>
+        <p class="save-status" id="student-record-status" role="status" aria-live="polite"></p>
+      </div>
+      <div class="inquiry-layout">
+        <div class="inquiry-fields">
+          <h3>우리 모둠의 탐구 기록</h3>
+          <p class="subtle">이 기록은 선택한 모둠에 저장됩니다.</p>
+          <label for="curiosity">궁금증</label>
+          <textarea id="curiosity" data-field="curiosity" placeholder="무엇이 궁금한가요?"></textarea>
+          <label for="question">탐구 질문</label>
+          <textarea id="question" data-field="question" placeholder="무엇을 알아보기 위한 질문인가요?"></textarea>
+          <label for="hypothesis">가설</label>
+          <textarea id="hypothesis" data-field="hypothesis" placeholder="어떤 결과를 예상하나요? 그렇게 생각한 까닭은 무엇인가요?"></textarea>
+          <label for="design">탐구 설계</label>
+          <textarea id="design" data-field="design" placeholder="무엇을 바꾸고, 무엇을 관찰하거나 측정할까요?"></textarea>
+          <p class="save-status" id="inquiry-save-status" role="status" aria-live="polite"></p>
+        </div>
+        <div>
+          <h3>탐구 코치의 질문</h3>
+          <p class="subtle">정답을 대신 정하지 않고, 생각을 살펴볼 질문과 확인할 점을 제안해요.</p>
+          <div class="coach-list" id="coach-list"></div>
+        </div>
+      </div>
+      <div class="execution-section" aria-labelledby="execution-title">
+        <h3 id="execution-title">실험 실행과 분석</h3>
+        <p class="subtle">실행 준비부터 결과를 검토하고 분석하는 과정까지 모둠 기록으로 남겨 보세요.</p>
+        <div class="execution-grid">
+          <div class="execution-field"><label for="materials">재료</label><textarea id="materials" data-field="materials" placeholder="실험에 필요한 재료와 도구를 적어 주세요."></textarea></div>
+          <div class="execution-field"><label for="duration">소요 시간</label><textarea id="duration" data-field="duration" placeholder="예상하거나 실제로 걸린 시간을 적어 주세요."></textarea></div>
+          <div class="execution-field"><label for="safety">안전 확인</label><textarea id="safety" data-field="safety" placeholder="실험 전에 확인할 안전 수칙을 적어 주세요."></textarea></div>
+          <div class="execution-field"><label for="results">실험 결과</label><textarea id="results" data-field="results" placeholder="관찰하거나 측정한 결과를 구체적으로 기록해 주세요."></textarea></div>
+          <div class="execution-field"><label for="unexpected">예상과 다른 결과 검토</label><textarea id="unexpected" data-field="unexpected" placeholder="예상과 같거나 달랐나요? 차이가 있다면 가능한 까닭을 적어 보세요."></textarea></div>
+          <div class="execution-field"><label for="planChanges">계획 수정</label><textarea id="planChanges" data-field="planChanges" placeholder="다시 실험한다면 무엇을 어떻게 바꾸고 싶은가요?"></textarea></div>
+          <div class="execution-field"><label for="discussion">보고서 또는 분석·토의</label><textarea id="discussion" data-field="discussion" placeholder="결과를 가설과 연결해 해석하고, 알게 된 점을 정리해 보세요."></textarea></div>
+        </div>
+        <p class="save-status" id="execution-save-status" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+    </div>
+
+    <section id="teacher-view" class="teacher-view" aria-labelledby="teacher-title" hidden>
+      <h2 id="teacher-title">선생님 모둠 확인</h2>
+      <p class="subtle">모둠별 진행 상황과 도움 요청, 학생별 탐구 생각 및 코치 제안 판단을 확인할 수 있습니다.</p>
+      <div id="teacher-groups"></div>
+    </section>
+  </main>
+  <script>
+    (() => {
+      const STORAGE_KEY = 'feedback-site-groups-v1';
+      const groupsElement = document.querySelector('#groups');
+      const createForm = document.querySelector('#create-form');
+      const joinForm = document.querySelector('#join-form');
+      const workspace = document.querySelector('#inquiry-workspace');
+      const groupSelect = document.querySelector('#workspace-group');
+      const memberSelect = document.querySelector('#workspace-member');
+      const thoughtInput = document.querySelector('#student-thought');
+      const helpButton = document.querySelector('#help-request-button');
+      const inquiryFields = ['curiosity', 'question', 'hypothesis', 'design'];
+      const executionFields = ['materials', 'duration', 'safety', 'results', 'unexpected', 'planChanges', 'discussion'];
+      const coachSuggestions = [
+        { id:'question', title:'탐구 질문 살펴보기', text:'이 질문에 답하려면 어떤 대상을 비교하거나 관찰해야 할까요?' },
+        { id:'hypothesis', title:'가설 살펴보기', text:'가설이 맞는지 확인할 수 있는 관찰 결과는 무엇일까요?' },
+        { id:'design', title:'탐구 설계 살펴보기', text:'한 번에 한 가지 조건만 바꾸려면 어떤 점을 같게 유지해야 할까요?' },
+        { id:'evidence', title:'근거 확인하기', text:'생각한 결과가 나왔을 때 가설을 지지하는 근거로 무엇을 기록할까요?' }
+      ];
+
+      function loadGroups() {
+        try {
+          const value = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+          return Array.isArray(value) ? value.filter(group => group && typeof group.code === 'string' && Array.isArray(group.members)) : [];
+        } catch { return []; }
+      }
+      let groups = loadGroups();
+      function saveGroups() { localStorage.setItem(STORAGE_KEY, JSON.stringify(groups)); }
+      function setNotice(id, message, success = false) {
+        const notice = document.getElementById(id);
+        notice.textContent = message;
+        notice.classList.toggle('success', success);
+      }
+      function makeCode() {
+        const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let code;
+        do {
+          const bytes = new Uint8Array(6);
+          crypto.getRandomValues(bytes);
+          code = Array.from(bytes, byte => alphabet[byte % alphabet.length]).join('');
+        } while (groups.some(group => group.code === code));
+        return code;
+      }
+      function render() {
+        groupsElement.replaceChildren();
+        if (!groups.length) {
+          const empty = document.createElement('div');
+          empty.className = 'empty';
+          empty.textContent = '아직 참여한 모둠이 없습니다. 위에서 모둠을 만들거나 참여해 보세요.';
+          groupsElement.append(empty);
+          renderTeacher();
+          return;
+        }
+        groups.forEach(group => {
+          const card = document.createElement('article');
+          card.className = 'group';
+          const head = document.createElement('div');
+          head.className = 'group-head';
+          const title = document.createElement('h2');
+          title.textContent = group.name || '탐구 모둠';
+          const code = document.createElement('span');
+          code.className = 'code';
+          code.setAttribute('aria-label', `참여 코드 ${group.code}`);
+          code.textContent = group.code;
+          head.append(title, code);
+          const membersTitle = document.createElement('p');
+          membersTitle.className = 'members-title';
+          membersTitle.append('참여 학생 ');
+          const count = document.createElement('span');
+          count.className = 'member-count';
+          count.textContent = `(${group.members.length}명)`;
+          membersTitle.append(count);
+          const members = document.createElement('ul');
+          group.members.forEach(member => {
+            const item = document.createElement('li');
+            item.textContent = member;
+            members.append(item);
+          });
+          card.append(head, membersTitle, members);
+          groupsElement.append(card);
+        });
+        renderWorkspace();
+        renderTeacher();
+      }
+
+      function addOption(select, value, label) {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = label;
+        select.append(option);
+      }
+      function selectedGroup() { return groups.find(group => group.code === groupSelect.value); }
+      function renderWorkspace() {
+        const previousCode = groupSelect.value;
+        workspace.hidden = groups.length === 0;
+        if (!groups.length) return;
+        groupSelect.replaceChildren();
+        groups.forEach(group => addOption(groupSelect, group.code, group.name || '탐구 모둠'));
+        groupSelect.value = groups.some(group => group.code === previousCode) ? previousCode : groups[0].code;
+        const group = selectedGroup();
+        const previousMember = memberSelect.value;
+        memberSelect.replaceChildren();
+        group.members.forEach(member => addOption(memberSelect, member, member));
+        memberSelect.value = group.members.includes(previousMember) ? previousMember : group.members[0];
+        group.inquiry ||= {};
+        inquiryFields.forEach(field => { document.getElementById(field).value = group.inquiry[field] || ''; });
+        group.execution ||= {};
+        executionFields.forEach(field => { document.getElementById(field).value = group.execution[field] || ''; });
+        group.studentThoughts ||= {};
+        group.helpRequests ||= {};
+        thoughtInput.value = group.studentThoughts[memberSelect.value] || '';
+        helpButton.textContent = group.helpRequests[memberSelect.value] ? '선생님 확인 요청 취소' : '선생님께 확인 요청';
+        document.querySelector('#student-record-status').textContent = '';
+        renderCoach(group, memberSelect.value);
+        document.querySelector('#inquiry-save-status').textContent = '';
+        document.querySelector('#execution-save-status').textContent = '';
+      }
+      function renderCoach(group, member) {
+        const list = document.querySelector('#coach-list');
+        list.replaceChildren();
+        group.decisions ||= {};
+        group.decisions[member] ||= {};
+        coachSuggestions.forEach(suggestion => {
+          const decision = group.decisions[member][suggestion.id] || {};
+          const card = document.createElement('article');
+          card.className = 'coach-card';
+          const heading = document.createElement('h3');
+          heading.textContent = suggestion.title;
+          const question = document.createElement('p');
+          question.className = 'coach-question';
+          question.textContent = suggestion.text;
+          const choices = document.createElement('div');
+          choices.className = 'choice-row';
+          choices.setAttribute('role', 'radiogroup');
+          choices.setAttribute('aria-label', `${suggestion.title} 판단`);
+          [['accept','받아들임'], ['revise','고침'], ['skip','사용하지 않음']].forEach(([value, label]) => {
+            const choiceLabel = document.createElement('label');
+            const radio = document.createElement('input');
+            radio.type = 'radio';
+            radio.name = `decision-${suggestion.id}`;
+            radio.value = value;
+            radio.checked = decision.choice === value;
+            radio.addEventListener('change', () => {
+              decision.choice = value;
+              group.decisions[member][suggestion.id] = decision;
+              saveGroups();
+            });
+            choiceLabel.append(radio, document.createTextNode(label));
+            choices.append(choiceLabel);
+          });
+          const reasonLabel = document.createElement('label');
+          reasonLabel.className = 'reason-label';
+          reasonLabel.textContent = '고치거나 사용하지 않은 이유 (선택)';
+          const reason = document.createElement('textarea');
+          reason.value = decision.reason || '';
+          reason.placeholder = '제안을 어떻게 판단했는지 이유를 적어 보세요.';
+          reason.setAttribute('aria-label', `${suggestion.title} 판단 이유`);
+          reason.addEventListener('input', () => {
+            decision.reason = reason.value;
+            group.decisions[member][suggestion.id] = decision;
+            saveGroups();
+          });
+          reasonLabel.append(reason);
+          card.append(heading, question, choices, reasonLabel);
+          list.append(card);
+        });
+      }
+
+      function progressFor(group) {
+        const inquiry = group.inquiry || {};
+        const execution = group.execution || {};
+        const stages = [
+          ['탐구 생각 기록', ['curiosity','question','hypothesis','design'].some(key => (inquiry[key] || '').trim())],
+          ['실험 준비', ['materials','duration','safety'].every(key => (execution[key] || '').trim())],
+          ['실행 및 결과 검토', ['results','unexpected'].every(key => (execution[key] || '').trim())],
+          ['분석 및 토의', ['planChanges','discussion'].every(key => (execution[key] || '').trim())]
+        ];
+        const completed = stages.filter(stage => stage[1]).length;
+        return { stages, completed, percent: Math.round(completed / stages.length * 100) };
+      }
+      function appendRecord(parent, label, value) {
+        const line = document.createElement('p');
+        const caption = document.createElement('span');
+        caption.className = 'record-label';
+        caption.textContent = `${label}: `;
+        line.append(caption, document.createTextNode(value || '기록 없음'));
+        parent.append(line);
+      }
+      function renderTeacher() {
+        const container = document.querySelector('#teacher-groups');
+        container.replaceChildren();
+        if (!groups.length) {
+          const empty = document.createElement('div');
+          empty.className = 'teacher-empty';
+          empty.textContent = '아직 확인할 모둠이 없습니다.';
+          container.append(empty);
+          return;
+        }
+        groups.forEach(group => {
+          const card = document.createElement('article');
+          card.className = 'teacher-group';
+          const heading = document.createElement('h3');
+          heading.textContent = group.name || '탐구 모둠';
+          const meta = document.createElement('p');
+          meta.className = 'teacher-meta';
+          meta.textContent = `참여 코드 ${group.code} · ${group.members.length}명`;
+          const progress = progressFor(group);
+          const progressLabel = document.createElement('p');
+          progressLabel.className = 'progress-label';
+          progressLabel.textContent = `진행 ${progress.completed}/4 단계 · ${progress.stages.filter(stage => stage[1]).map(stage => stage[0]).join(', ') || '기록 시작 전'}`;
+          const track = document.createElement('div');
+          track.className = 'progress-track';
+          track.setAttribute('role', 'progressbar');
+          track.setAttribute('aria-label', `${group.name || '모둠'} 진행 상태`);
+          track.setAttribute('aria-valuemin', '0');
+          track.setAttribute('aria-valuemax', '100');
+          track.setAttribute('aria-valuenow', String(progress.percent));
+          const fill = document.createElement('div');
+          fill.className = 'progress-fill';
+          fill.style.width = `${progress.percent}%`;
+          track.append(fill);
+          const members = document.createElement('div');
+          members.className = 'teacher-members';
+          group.members.forEach(member => {
+            const memberCard = document.createElement('article');
+            memberCard.className = 'teacher-member';
+            const memberHeading = document.createElement('h4');
+            memberHeading.textContent = member;
+            const request = document.createElement('span');
+            request.className = `request-status${group.helpRequests?.[member] ? ' active' : ''}`;
+            request.textContent = group.helpRequests?.[member] ? '도움 요청 중' : '도움 요청 없음';
+            memberCard.append(memberHeading, request);
+            appendRecord(memberCard, '생각 기록', group.studentThoughts?.[member]);
+            appendRecord(memberCard, '모둠 탐구 질문', group.inquiry?.question);
+            appendRecord(memberCard, '가설', group.inquiry?.hypothesis);
+            appendRecord(memberCard, '계획 수정 기록', group.execution?.planChanges);
+            const decisions = group.decisions?.[member] || {};
+            coachSuggestions.forEach(suggestion => {
+              const decision = decisions[suggestion.id];
+              const choiceNames = { accept:'받아들임', revise:'고침', skip:'사용하지 않음' };
+              const value = decision ? `${choiceNames[decision.choice] || '미선택'}${decision.reason ? ` · 이유: ${decision.reason}` : ''}` : '기록 없음';
+              appendRecord(memberCard, suggestion.title, value);
+            });
+            members.append(memberCard);
+          });
+          card.append(heading, meta, progressLabel, track, members);
+          container.append(card);
+        });
+      }
+
+      groupSelect.addEventListener('change', renderWorkspace);
+      memberSelect.addEventListener('change', () => {
+        const group = selectedGroup();
+        if (group) {
+          thoughtInput.value = group.studentThoughts?.[memberSelect.value] || '';
+          helpButton.textContent = group.helpRequests?.[memberSelect.value] ? '선생님 확인 요청 취소' : '선생님께 확인 요청';
+          document.querySelector('#student-record-status').textContent = '';
+          renderCoach(group, memberSelect.value);
+        }
+      });
+      thoughtInput.addEventListener('input', () => {
+        const group = selectedGroup();
+        if (!group) return;
+        group.studentThoughts ||= {};
+        group.studentThoughts[memberSelect.value] = thoughtInput.value;
+        saveGroups();
+        renderTeacher();
+        document.querySelector('#student-record-status').textContent = '생각 기록이 저장되었습니다.';
+      });
+      helpButton.addEventListener('click', () => {
+        const group = selectedGroup();
+        if (!group) return;
+        group.helpRequests ||= {};
+        group.helpRequests[memberSelect.value] = !group.helpRequests[memberSelect.value];
+        saveGroups();
+        helpButton.textContent = group.helpRequests[memberSelect.value] ? '선생님 확인 요청 취소' : '선생님께 확인 요청';
+        document.querySelector('#student-record-status').textContent = group.helpRequests[memberSelect.value] ? '선생님께 확인 요청을 보냈습니다.' : '확인 요청을 취소했습니다.';
+        renderTeacher();
+      });
+      document.querySelectorAll('[data-field]').forEach(field => field.addEventListener('input', () => {
+        const group = selectedGroup();
+        if (!group) return;
+        const key = inquiryFields.includes(field.dataset.field) ? 'inquiry' : 'execution';
+        group[key] ||= {};
+        group[key][field.dataset.field] = field.value;
+        saveGroups();
+        document.querySelector(`#${key === 'inquiry' ? 'inquiry' : 'execution'}-save-status`).textContent = '입력 내용이 이 브라우저에 저장되었습니다.';
+      }));
+
+      createForm.addEventListener('submit', event => {
+        event.preventDefault();
+        const name = new FormData(createForm).get('name').trim();
+        if (!name) return;
+        const group = { name: `${name}의 모둠`, code: makeCode(), members: [name] };
+        groups.unshift(group);
+        saveGroups();
+        render();
+        createForm.reset();
+        setNotice('create-notice', `모둠을 만들었어요. 참여 코드는 ${group.code}입니다.`, true);
+      });
+
+      joinForm.addEventListener('submit', event => {
+        event.preventDefault();
+        const form = new FormData(joinForm);
+        const code = String(form.get('code')).trim().toUpperCase();
+        const name = String(form.get('name')).trim();
+        const group = groups.find(item => item.code === code);
+        if (!group) {
+          setNotice('join-notice', '참여 코드를 찾을 수 없어요. 코드를 다시 확인해 주세요.');
+          return;
+        }
+        if (group.members.some(member => member.toLocaleLowerCase() === name.toLocaleLowerCase())) {
+          setNotice('join-notice', '이 별칭 또는 번호는 이미 이 모둠에 참여하고 있어요.');
+          return;
+        }
+        group.members.push(name);
+        saveGroups();
+        render();
+        joinForm.reset();
+        setNotice('join-notice', `${group.name}에 참여했어요.`, true);
+      });
+
+      const studentView = document.querySelector('#student-view');
+      const teacherView = document.querySelector('#teacher-view');
+      const studentViewButton = document.querySelector('#student-view-button');
+      const teacherViewButton = document.querySelector('#teacher-view-button');
+      function showView(view) {
+        const isTeacher = view === 'teacher';
+        studentView.hidden = isTeacher;
+        teacherView.hidden = !isTeacher;
+        studentViewButton.setAttribute('aria-pressed', String(!isTeacher));
+        teacherViewButton.setAttribute('aria-pressed', String(isTeacher));
+        if (isTeacher) renderTeacher();
+      }
+      studentViewButton.addEventListener('click', () => showView('student'));
+      teacherViewButton.addEventListener('click', () => showView('teacher'));
+
+      render();
+    })();
+  </script>
+</body>
+</html>
